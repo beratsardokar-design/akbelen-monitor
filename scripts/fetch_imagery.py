@@ -1,6 +1,6 @@
 """
 Akbelen Çevre İzleme Sistemi
-Sentinel-2 NDVI analizi - Copernicus Data Space
+Sentinel-2 NDVI görüntüsü indirme - Copernicus Data Space
 """
 
 import os
@@ -12,60 +12,71 @@ from datetime import datetime, timedelta
 BBOX = [28.05, 37.08, 28.20, 37.18]
 INSTANCE_ID = os.environ.get("COPERNICUS_INSTANCE_ID", "")
 
-def get_token():
-    """Copernicus erişim token'ı al"""
-    url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
-    data = {
-        "client_id": "cdse-public",
-        "username": os.environ.get("COPERNICUS_EMAIL", ""),
-        "password": os.environ.get("COPERNICUS_PASSWORD", ""),
-        "grant_type": "password"
-    }
-    response = requests.post(url, data=data)
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    return None
-
-def fetch_ndvi_stats():
-    """Akbelen için NDVI istatistikleri çek"""
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=30)
-    
+def fetch_ndvi_image(date_str):
+    """Belirli tarih için NDVI görüntüsü indir"""
     url = f"https://sh.dataspace.copernicus.eu/ogc/wms/{INSTANCE_ID}"
     params = {
         "SERVICE": "WMS",
+        "VERSION": "1.3.0",
         "REQUEST": "GetMap",
         "LAYERS": "VEGETATION_INDEX",
-        "BBOX": f"{BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]}",
+        "BBOX": f"{BBOX[1]},{BBOX[0]},{BBOX[3]},{BBOX[2]}",
         "WIDTH": "512",
         "HEIGHT": "512",
         "FORMAT": "image/png",
-        "TIME": f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}",
-        "MAXCC": "20"
+        "CRS": "EPSG:4326",
+        "TIME": date_str,
+        "MAXCC": "30"
     }
-    
-    response = requests.get(url, params=params)
-    return response.status_code == 200
+    response = requests.get(url, params=params, timeout=30)
+    if response.status_code == 200 and len(response.content) > 1000:
+        return response.content
+    return None
 
 def main():
-    print(f"Akbelen NDVI izleme başladı: {datetime.now().isoformat()}")
+    today = datetime.now()
+    date_str = today.strftime("%Y-%m-%d")
+    month_ago = (today - timedelta(days=30)).strftime("%Y-%m-%d")
+    time_range = f"{month_ago}/{date_str}"
     
-    success = fetch_ndvi_stats()
-    
-    result = {
-        "timestamp": datetime.now().isoformat(),
-        "bbox": BBOX,
-        "ndvi_fetch_success": success,
-        "status": "success" if success else "error"
-    }
+    print(f"Akbelen NDVI izleme: {date_str}")
     
     os.makedirs("reports", exist_ok=True)
-    filename = f"reports/akbelen_{datetime.now().strftime('%Y%m%d')}.json"
-    with open(filename, "w") as f:
+    
+    # NDVI görüntüsü indir
+    image_data = fetch_ndvi_image(time_range)
+    
+    if image_data:
+        img_filename = f"reports/ndvi_{date_str}.png"
+        with open(img_filename, "wb") as f:
+            f.write(image_data)
+        print(f"Görüntü kaydedildi: {img_filename}")
+        image_saved = True
+    else:
+        print("Görüntü indirilemedi")
+        image_saved = False
+    
+    # JSON rapor
+    result = {
+        "timestamp": today.isoformat(),
+        "date": date_str,
+        "bbox": {
+            "min_lon": BBOX[0],
+            "min_lat": BBOX[1],
+            "max_lon": BBOX[2],
+            "max_lat": BBOX[3]
+        },
+        "image_saved": image_saved,
+        "image_file": f"ndvi_{date_str}.png" if image_saved else None,
+        "status": "success" if image_saved else "no_image"
+    }
+    
+    report_file = f"reports/rapor_{date_str}.json"
+    with open(report_file, "w") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
     
-    print(f"Rapor kaydedildi: {filename}")
-    print(f"NDVI çekme: {'Başarılı' if success else 'Hata'}")
+    print(f"Rapor: {report_file}")
+    print(f"Durum: {'Görüntü alındı' if image_saved else 'Görüntü alınamadı'}")
 
 if __name__ == "__main__":
     main()
