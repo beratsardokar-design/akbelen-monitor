@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-04-19T17:13:50.508590",
+  "date": "2026-04-19",
+  "bbox": {
+    "min_lon": 28.05,
+    "min_lat": 37.08,
+    "max_lon": 28.2,
+    "max_lat": 37.18
+  },
+  "image_saved": true,
+  "image_file": "ndvi_2026-04-19.png",
+  "status": "success"
+}
