@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-04-19T14:14:49.389682",
+  "bbox": {
+    "min_lon": 28.05,
+    "min_lat": 37.08,
+    "max_lon": 28.2,
+    "max_lat": 37.18
+  },
+  "date_range": {
+    "start": "2026-03-20",
+    "end": "2026-04-19"
+  },
+  "status": "initialized"
+}
