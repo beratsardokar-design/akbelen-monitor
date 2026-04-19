@@ -2,8 +2,8 @@ name: Akbelen Haftalık İzleme
 
 on:
   schedule:
-    - cron: '0 6 * * 1'  # Her Pazartesi 06:00 UTC
-  workflow_dispatch:      # Manuel tetikleme butonu
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
 
 jobs:
   monitor:
@@ -19,10 +19,13 @@ jobs:
         python-version: '3.11'
 
     - name: Bağımlılıkları yükle
-      run: |
-        pip install requests numpy pillow
+      run: pip install requests numpy pillow
 
     - name: İzleme scriptini çalıştır
+      env:
+        COPERNICUS_INSTANCE_ID: ${{ secrets.COPERNICUS_INSTANCE_ID }}
+        COPERNICUS_EMAIL: ${{ secrets.COPERNICUS_EMAIL }}
+        COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
       run: python scripts/fetch_imagery.py
 
     - name: Raporu commit et
@@ -30,5 +33,5 @@ jobs:
         git config --global user.email "action@github.com"
         git config --global user.name "Akbelen Monitor Bot"
         git add reports/
-       git diff --staged --quiet && echo "Değişiklik yok" || git commit -m "Otomatik rapor: $(date +%Y-%m-%d)"
+        git diff --staged --quiet && echo "Degisiklik yok" || git commit -m "Otomatik rapor: $(date +%Y-%m-%d)"
         git push
