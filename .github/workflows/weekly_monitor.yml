@@ -12,30 +12,68 @@ jobs:
       contents: write
     
     steps:
-      - name: Repository'yi çek
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Repository'yi çek
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Python kur
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Python kur
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Bağımlılıkları yükle
-        run: pip install requests numpy pillow
+    - name: Bağımlılıkları yükle
+      run: pip install requests numpy pillow
 
-      - name: İzleme scriptini çalıştır
-        env:
-          COPERNICUS_INSTANCE_ID: ${{ secrets.COPERNICUS_INSTANCE_ID }}
-          COPERNICUS_EMAIL: ${{ secrets.COPERNICUS_EMAIL }}
-          COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
-        run: python scripts/fetch_imagery.py
+    - name: İzleme scriptini çalıştır
+      env:
+        COPERNICUS_INSTANCE_ID: ${{ secrets.COPERNICUS_INSTANCE_ID }}
+        COPERNICUS_EMAIL: ${{ secrets.COPERNICUS_EMAIL }}
+        COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
+      run: python scripts/fetch_imagery.py
 
-      - name: Raporu commit et
-        run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "Akbelen Monitor Bot"
-          git pull --rebase origin main
-          git add reports/
-          git diff --staged --quiet && echo "No changes" || (git commit -m "Otomatik rapor: $(date +%Y-%m-%d)" && git push)
+    - name: Raporu commit et
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "Akbelen Monitor Bot"
+        git add reports/
+        git diff --staged --quiet && echo "Degisiklik yok" || (git pull --rebase origin main && git commit -m "Otomatik rapor: $(date +%Y-%m-%d)" && git push origin main)name: Akbelen Haftalık İzleme
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Repository'yi çek
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Python kur
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Bağımlılıkları yükle
+      run: pip install requests numpy pillow
+
+    - name: İzleme scriptini çalıştır
+      env:
+        COPERNICUS_INSTANCE_ID: ${{ secrets.COPERNICUS_INSTANCE_ID }}
+        COPERNICUS_EMAIL: ${{ secrets.COPERNICUS_EMAIL }}
+        COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
+      run: python scripts/fetch_imagery.py
+
+    - name: Raporu commit et
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "Akbelen Monitor Bot"
+        git add reports/
+        git diff --staged --quiet && echo "Degisiklik yok" || (git pull --rebase origin main && git commit -m "Otomatik rapor: $(date +%Y-%m-%d)" && git push origin main)
