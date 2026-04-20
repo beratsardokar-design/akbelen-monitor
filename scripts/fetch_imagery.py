@@ -4,7 +4,7 @@ import requests
 from datetime import datetime, timedelta
 
 # Akbelen koordinatları - DÜZELTİLDİ
-BBOX = [27.82, 37.13, 27.92, 37.20]
+BBOX = [27.83, 37.15, 27.90, 37.20]
 INSTANCE_ID = os.environ.get("COPERNICUS_INSTANCE_ID", "")
 
 def fetch_ndvi_image(date_str):
