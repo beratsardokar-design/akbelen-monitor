@@ -32,10 +32,14 @@ jobs:
         COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
       run: python scripts/fetch_imagery.py
 
-    - name: Raporu commit et
+   - name: Raporu commit et
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "Akbelen Monitor Bot"
         git add reports/
-        # Değişiklik yoksa dur, varsa pull yap ve push et
-        git diff --staged --quiet && echo "Degisiklik yok" || (git pull --rebase origin main && git commit -m "Otomatik rapor: $(date +%Y-%m-%d)" && git push)
+        git stash
+        git pull origin main
+        git stash pop
+        git add reports/
+        git diff --staged --quiet && echo "Degisiklik yok" || git commit -m "Otomatik rapor: $(date +%Y-%m-%d)"
+        git push
