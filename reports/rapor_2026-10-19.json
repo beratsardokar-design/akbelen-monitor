@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-19T11:42:38.414313",
+  "date": "2026-10-19",
+  "bbox": {
+    "min_lon": 27.83,
+    "min_lat": 37.15,
+    "max_lon": 27.9,
+    "max_lat": 37.2
+  },
+  "image_saved": true,
+  "status": "success"
+}
